@@ -9,11 +9,11 @@ import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
-public class RangeSeekBarTest {
+public class RangeBarTest {
 
     @Test
     public void rsb_should_handle_long_values() {
-        RangeSeekBar<Long> mSeekBar = new RangeSeekBar<>(RuntimeEnvironment.application);
+        RangeBar<Long> mSeekBar = new RangeBar<>(RuntimeEnvironment.application);
         // Set up the seek bar
         mSeekBar.setRangeValues(0L, 100L);
         long minValue = mSeekBar.getAbsoluteMinValue();

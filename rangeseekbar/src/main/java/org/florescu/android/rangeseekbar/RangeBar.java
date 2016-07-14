@@ -57,32 +57,10 @@ import java.math.BigDecimal;
  * @author Thomas Barrasso (tbarrasso@sevenplusandroid.org)
  * @author Alex Florescu (alex@florescu.org)
  * @author Michael Keppler (bananeweizen@gmx.de)
+ * @author Krzysztof Joachimiak
  */
-public class RangeSeekBar<T extends Number> extends ImageView {
-    /**
-     * Default color of a {@link RangeSeekBar}, #FF33B5E5. This is also known as "Ice Cream Sandwich" blue.
-     */
-    public static final int ACTIVE_COLOR = Color.argb(0xFF, 0x33, 0xB5, 0xE5);
-    /**
-     * An invalid pointer id.
-     */
-    public static final int INVALID_POINTER_ID = 255;
+public class RangeBar<T extends Number> extends ImageView {
 
-    // Localized constants from MotionEvent for compatibility
-    // with API < 8 "Froyo".
-    public static final int ACTION_POINTER_INDEX_MASK = 0x0000ff00, ACTION_POINTER_INDEX_SHIFT = 8;
-
-    public static final Integer DEFAULT_MINIMUM = 0;
-    public static final Integer DEFAULT_MAXIMUM = 100;
-    public static final int HEIGHT_IN_DP = 30;
-    public static final int TEXT_LATERAL_PADDING_IN_DP = 3;
-
-    private static final int INITIAL_PADDING_IN_DP = 8;
-    private static final int DEFAULT_TEXT_SIZE_IN_DP = 14;
-    private static final int DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP = 8;
-    private static final int DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP = 8;
-
-    private static final int LINE_HEIGHT_IN_DP = 1;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shadowPaint = new Paint();
 
@@ -106,7 +84,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
     private float downMotionX;
 
-    private int activePointerId = INVALID_POINTER_ID;
+    private int activePointerId = Defaults.INVALID_POINTER_ID;
 
     private int scaledTouchSlop;
 
@@ -135,19 +113,22 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     private Matrix thumbShadowMatrix = new Matrix();
 
     private boolean activateOnDefaultValues;
+    private String hintFormat ="%s";
+    private boolean isRounded = true;
+    private int cornerRadius = 1;
 
 
-    public RangeSeekBar(Context context) {
+    public RangeBar(Context context) {
         super(context);
         init(context, null);
     }
 
-    public RangeSeekBar(Context context, AttributeSet attrs) {
+    public RangeBar(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
-    public RangeSeekBar(Context context, AttributeSet attrs, int defStyle) {
+    public RangeBar(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs);
     }
@@ -180,9 +161,9 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
         if (attrs == null) {
             setRangeToDefaultValues();
-            internalPad = PixelUtil.dpToPx(context, INITIAL_PADDING_IN_DP);
-            barHeight = PixelUtil.dpToPx(context, LINE_HEIGHT_IN_DP);
-            activeColor = ACTIVE_COLOR;
+            internalPad = PixelUtil.dpToPx(context, Defaults.INITIAL_PADDING_IN_DP);
+            barHeight = PixelUtil.dpToPx(context, Defaults.LINE_HEIGHT_IN_DP);
+            activeColor = Defaults.ACTIVE_COLOR;
             defaultColor = Color.GRAY;
             alwaysActive = false;
             showTextAboveThumbs = true;
@@ -193,41 +174,41 @@ public class RangeSeekBar<T extends Number> extends ImageView {
             thumbShadowBlur = defaultShadowBlur;
             activateOnDefaultValues = false;
         } else {
-            TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar, 0, 0);
+            TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RangeBar, 0, 0);
             try {
                 setRangeValues(
-                        extractNumericValueFromAttributes(a, R.styleable.RangeSeekBar_absoluteMinValue, DEFAULT_MINIMUM),
-                        extractNumericValueFromAttributes(a, R.styleable.RangeSeekBar_absoluteMaxValue, DEFAULT_MAXIMUM)
+                        extractNumericValueFromAttributes(a, R.styleable.RangeBar_absoluteMinValue, Defaults.DEFAULT_MINIMUM),
+                        extractNumericValueFromAttributes(a, R.styleable.RangeBar_absoluteMaxValue, Defaults.DEFAULT_MAXIMUM)
                 );
-                showTextAboveThumbs = a.getBoolean(R.styleable.RangeSeekBar_valuesAboveThumbs, true);
-                textAboveThumbsColor = a.getColor(R.styleable.RangeSeekBar_textAboveThumbsColor, Color.WHITE);
-                singleThumb = a.getBoolean(R.styleable.RangeSeekBar_singleThumb, false);
-                showLabels = a.getBoolean(R.styleable.RangeSeekBar_showLabels, true);
-                internalPad = a.getDimensionPixelSize(R.styleable.RangeSeekBar_internalPadding, INITIAL_PADDING_IN_DP);
-                barHeight = a.getDimensionPixelSize(R.styleable.RangeSeekBar_barHeight, LINE_HEIGHT_IN_DP);
-                activeColor = a.getColor(R.styleable.RangeSeekBar_activeColor, ACTIVE_COLOR);
-                defaultColor = a.getColor(R.styleable.RangeSeekBar_defaultColor, Color.GRAY);
-                alwaysActive = a.getBoolean(R.styleable.RangeSeekBar_alwaysActive, false);
+                showTextAboveThumbs = a.getBoolean(R.styleable.RangeBar_valuesAboveThumbs, true);
+                textAboveThumbsColor = a.getColor(R.styleable.RangeBar_textAboveThumbsColor, Color.WHITE);
+                singleThumb = a.getBoolean(R.styleable.RangeBar_singleThumb, false);
+                showLabels = a.getBoolean(R.styleable.RangeBar_showLabels, true);
+                internalPad = a.getDimensionPixelSize(R.styleable.RangeBar_internalPadding, Defaults.INITIAL_PADDING_IN_DP);
+                barHeight = a.getDimensionPixelSize(R.styleable.RangeBar_barHeight, Defaults.LINE_HEIGHT_IN_DP);
+                activeColor = a.getColor(R.styleable.RangeBar_activeColor, Defaults.ACTIVE_COLOR);
+                defaultColor = a.getColor(R.styleable.RangeBar_defaultColor, Color.GRAY);
+                alwaysActive = a.getBoolean(R.styleable.RangeBar_alwaysActive, false);
 
-                Drawable normalDrawable = a.getDrawable(R.styleable.RangeSeekBar_thumbNormal);
+                Drawable normalDrawable = a.getDrawable(R.styleable.RangeBar_thumbNormal);
                 if (normalDrawable != null) {
                     thumbImage = BitmapUtil.drawableToBitmap(normalDrawable);
                 }
-                Drawable disabledDrawable = a.getDrawable(R.styleable.RangeSeekBar_thumbDisabled);
+                Drawable disabledDrawable = a.getDrawable(R.styleable.RangeBar_thumbDisabled);
                 if (disabledDrawable != null) {
                     thumbDisabledImage = BitmapUtil.drawableToBitmap(disabledDrawable);
                 }
-                Drawable pressedDrawable = a.getDrawable(R.styleable.RangeSeekBar_thumbPressed);
+                Drawable pressedDrawable = a.getDrawable(R.styleable.RangeBar_thumbPressed);
                 if (pressedDrawable != null) {
                     thumbPressedImage = BitmapUtil.drawableToBitmap(pressedDrawable);
                 }
-                thumbShadow = a.getBoolean(R.styleable.RangeSeekBar_thumbShadow, false);
-                thumbShadowColor = a.getColor(R.styleable.RangeSeekBar_thumbShadowColor, defaultShadowColor);
-                thumbShadowXOffset = a.getDimensionPixelSize(R.styleable.RangeSeekBar_thumbShadowXOffset, defaultShadowXOffset);
-                thumbShadowYOffset = a.getDimensionPixelSize(R.styleable.RangeSeekBar_thumbShadowYOffset, defaultShadowYOffset);
-                thumbShadowBlur = a.getDimensionPixelSize(R.styleable.RangeSeekBar_thumbShadowBlur, defaultShadowBlur);
+                thumbShadow = a.getBoolean(R.styleable.RangeBar_thumbShadow, false);
+                thumbShadowColor = a.getColor(R.styleable.RangeBar_thumbShadowColor, defaultShadowColor);
+                thumbShadowXOffset = a.getDimensionPixelSize(R.styleable.RangeBar_thumbShadowXOffset, defaultShadowXOffset);
+                thumbShadowYOffset = a.getDimensionPixelSize(R.styleable.RangeBar_thumbShadowYOffset, defaultShadowYOffset);
+                thumbShadowBlur = a.getDimensionPixelSize(R.styleable.RangeBar_thumbShadowBlur, defaultShadowBlur);
 
-                activateOnDefaultValues = a.getBoolean(R.styleable.RangeSeekBar_activateOnDefaultValues, false);
+                activateOnDefaultValues = a.getBoolean(R.styleable.RangeBar_activateOnDefaultValues, false);
             } finally {
                 a.recycle();
             }
@@ -248,10 +229,10 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
         setValuePrimAndNumberType();
 
-        textSize = PixelUtil.dpToPx(context, DEFAULT_TEXT_SIZE_IN_DP);
-        distanceToTop = PixelUtil.dpToPx(context, DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP);
+        textSize = PixelUtil.dpToPx(context, Defaults.DEFAULT_TEXT_SIZE_IN_DP);
+        distanceToTop = PixelUtil.dpToPx(context, Defaults.DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP);
         textOffset = !showTextAboveThumbs ? 0 : this.textSize + PixelUtil.dpToPx(context,
-                DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP) + this.distanceToTop;
+                Defaults.DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP) + this.distanceToTop;
 
         rect = new RectF(padding,
                 textOffset + thumbHalfHeight - barHeight / 2,
@@ -276,6 +257,8 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         }
     }
 
+    //region public
+
     public void setRangeValues(T minValue, T maxValue) {
         this.absoluteMinValue = minValue;
         this.absoluteMaxValue = maxValue;
@@ -291,11 +274,19 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         setTextAboveThumbsColor(getResources().getColor(resId));
     }
 
-    @SuppressWarnings("unchecked")
+    public void setHintFormat(String hintFormatter){
+        this.hintFormat = hintFormatter;
+    }
+
+    public void setCornersRadius(int radius){
+        this.cornerRadius = radius;
+    }
+
+     @SuppressWarnings("unchecked")
     // only used to set default values when initialised from XML without any values specified
     private void setRangeToDefaultValues() {
-        this.absoluteMinValue = (T) DEFAULT_MINIMUM;
-        this.absoluteMaxValue = (T) DEFAULT_MAXIMUM;
+        this.absoluteMinValue = (T) Defaults.DEFAULT_MINIMUM;
+        this.absoluteMaxValue = (T) Defaults.DEFAULT_MAXIMUM;
         setValuePrimAndNumberType();
     }
 
@@ -515,8 +506,11 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         return true;
     }
 
+    //endregion public
+
+    // region private
     private void onSecondaryPointerUp(MotionEvent ev) {
-        final int pointerIndex = (ev.getAction() & ACTION_POINTER_INDEX_MASK) >> ACTION_POINTER_INDEX_SHIFT;
+        final int pointerIndex = (ev.getAction() & Defaults.ACTION_POINTER_INDEX_MASK) >> Defaults.ACTION_POINTER_INDEX_SHIFT;
 
         final int pointerId = ev.getPointerId(pointerIndex);
         if (pointerId == activePointerId) {
@@ -574,7 +568,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         }
 
         int height = thumbImage.getHeight()
-                + (!showTextAboveThumbs ? 0 : PixelUtil.dpToPx(getContext(), HEIGHT_IN_DP))
+                + (!showTextAboveThumbs ? 0 : PixelUtil.dpToPx(getContext(), Defaults.HEIGHT_IN_DP))
                 + (thumbShadow ? thumbShadowYOffset + thumbShadowBlur : 0);
         if (MeasureSpec.UNSPECIFIED != MeasureSpec.getMode(heightMeasureSpec)) {
             height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
@@ -609,7 +603,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         // draw seek bar background line
         rect.left = padding;
         rect.right = getWidth() - padding;
-        canvas.drawRect(rect, paint);
+        drawBar(canvas);
 
         boolean selectedValuesAreDefault = (normalizedMinValue <= minDeltaForDefault && normalizedMaxValue >= 1 - minDeltaForDefault);
 
@@ -622,7 +616,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         rect.right = normalizedToScreen(normalizedMaxValue);
 
         paint.setColor(colorToUseForButtonsAndHighlightedLine);
-        canvas.drawRect(rect, paint);
+        drawBar(canvas);
 
         // draw minimum thumb (& shadow if requested) if not a single thumb control
         if (!singleThumb) {
@@ -645,8 +639,10 @@ public class RangeSeekBar<T extends Number> extends ImageView {
             paint.setTextSize(textSize);
             paint.setColor(textAboveThumbsColor);
 
-            String minText = valueToString(getSelectedMinValue());
-            String maxText = valueToString(getSelectedMaxValue());
+            //String minText = valueToString(getSelectedMinValue());
+            String minText = String.format(hintFormat,getSelectedMinValue());
+            //String maxText = valueToString(getSelectedMaxValue());
+            String maxText = String.format(hintFormat,getSelectedMaxValue());
             float minTextWidth = paint.measureText(minText);
             float maxTextWidth = paint.measureText(maxText);
             // keep the position so that the labels don't get cut off
@@ -655,7 +651,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
             if (!singleThumb) {
                 // check if the labels overlap, or are too close to each other
-                int spacing = PixelUtil.dpToPx(getContext(), TEXT_LATERAL_PADDING_IN_DP);
+                int spacing = PixelUtil.dpToPx(getContext(), Defaults.TEXT_LATERAL_PADDING_IN_DP);
                 float overlap = minPosition + minTextWidth - maxPosition + spacing;
                 if (overlap > 0f) {
                     // we could move them the same ("overlap * 0.5f")
@@ -703,6 +699,13 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         super.onRestoreInstanceState(bundle.getParcelable("SUPER"));
         normalizedMinValue = bundle.getDouble("MIN");
         normalizedMaxValue = bundle.getDouble("MAX");
+    }
+
+    private void drawBar(Canvas canvas){
+        if(isRounded)
+            canvas.drawRoundRect(rect,cornerRadius,cornerRadius,paint);
+        else
+            canvas.drawRect(rect, paint);
     }
 
     /**
@@ -841,6 +844,8 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         }
     }
 
+    // endregion private
+
     /**
      * Thumb constants (min and max).
      */
@@ -910,7 +915,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
      */
     public interface OnRangeSeekBarChangeListener<T extends Number> {
 
-        void onRangeSeekBarValuesChanged(RangeSeekBar<T> bar, T minValue, T maxValue);
+        void onRangeSeekBarValuesChanged(RangeBar<T> bar, T minValue, T maxValue);
     }
 
 }

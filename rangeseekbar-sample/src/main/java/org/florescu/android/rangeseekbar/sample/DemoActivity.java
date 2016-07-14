@@ -21,7 +21,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
-import org.florescu.android.rangeseekbar.RangeSeekBar;
+import org.florescu.android.rangeseekbar.RangeBar;
 
 public class DemoActivity extends Activity {
 
@@ -34,18 +34,21 @@ public class DemoActivity extends Activity {
         setContentView(R.layout.main);
 
         // Setup the new range seek bar
-        RangeSeekBar<Integer> rangeSeekBar = new RangeSeekBar<Integer>(this);
+        RangeBar<Integer> rangeBar = new RangeBar<Integer>(this);
         // Set the range
-        rangeSeekBar.setRangeValues(15, 90);
-        rangeSeekBar.setSelectedMinValue(20);
-        rangeSeekBar.setSelectedMaxValue(88);
+        rangeBar.setRangeValues(15, 90);
+        rangeBar.setSelectedMinValue(20);
+        rangeBar.setSelectedMaxValue(88);
+        rangeBar.setHintFormat("%s USD");
+        //rangeSeekBar.setBarThickness(10);
+        rangeBar.setCornersRadius(5);
 
         // Add to layout
         LinearLayout layout = (LinearLayout) findViewById(R.id.seekbar_placeholder);
-        layout.addView(rangeSeekBar);
+        layout.addView(rangeBar);
 
         // Seek bar for which we will set text color in code
-        RangeSeekBar rangeSeekBarTextColorWithCode = (RangeSeekBar) findViewById(R.id.rangeSeekBarTextColorWithCode);
-        rangeSeekBarTextColorWithCode.setTextAboveThumbsColorResource(android.R.color.holo_blue_bright);
+        RangeBar rangeBarTextColorWithCode = (RangeBar) findViewById(R.id.rangeSeekBarTextColorWithCode);
+        rangeBarTextColorWithCode.setTextAboveThumbsColorResource(android.R.color.holo_blue_bright);
     }
 }
