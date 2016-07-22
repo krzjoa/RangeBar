@@ -35,6 +35,7 @@ import android.os.Parcelable;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
@@ -425,11 +426,12 @@ public class RangeBar<T extends Number> extends ImageView {
                 activePointerId = event.getPointerId(event.getPointerCount() - 1);
                 pointerIndex = event.findPointerIndex(activePointerId);
                 downMotionX = event.getX(pointerIndex);
-
+                Log.d("Touch",Double.toString(screenToNormalized(event.getX())));
                 pressedThumb = evalPressedThumb(downMotionX);
 
                 // Only handle thumb presses.
                 if (pressedThumb == null) {
+                    setValueOnTap(event.getX());
                     return super.onTouchEvent(event);
                 }
 
@@ -761,6 +763,30 @@ public class RangeBar<T extends Number> extends ImageView {
         }
         return result;
     }
+
+    private void setValueOnTap(float x){
+        double normalizedPoint = screenToNormalized(x);
+        double tapToMinValue = Math.abs(normalizedMinValue-normalizedPoint);
+        double tapToMaxValue = Math.abs(normalizedMaxValue-normalizedPoint);
+
+        if(singleThumb){
+            setNormalizedMaxValue(screenToNormalized(x));
+            return;
+        }
+
+        if(tapToMinValue<tapToMaxValue){
+            setNormalizedMinValue(screenToNormalized(x));
+        } else  {
+            setNormalizedMaxValue(screenToNormalized(x));
+        }
+    }
+
+
+//     private T evalRangeBarClick(float touchX){
+//      //return  valueToNormalized(touchX);
+//     }
+
+
 
     /**
      * Decides if given x-coordinate in screen space needs to be interpreted as "within" the normalized thumb x-coordinate.
